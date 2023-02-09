@@ -1,0 +1,91 @@
+
+#install.packages("shiny")
+#install.packages("shinydashboard")
+library(shinydashboard)
+library(shiny)
+
+library(spdep)
+library(rgdal)
+library(rgeos)
+library(olsrr)
+
+headerPanel <- dashboardHeader( title = "PM1 - Calgary Micro-mobility",
+                                titleWidth = 450
+)
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    menuItem("Infrastructure", tabName = "dashboard", icon = icon("th")),
+    menuItem("Events and Days of Interest", icon = icon("th"), tabName = "Events"))
+)
+
+body <- dashboardBody(
+  
+  #Dashboard 1 
+  
+  fluidRow(
+    box(plot1, height = 500, width = 500),
+    
+    box(
+      "Box content here", br(), "More box content",
+      sliderInput("slider", "Slider input:", 1, 100, 50),
+      textInput("text", "Text input:")
+    )
+  ),
+  
+  tabItems(
+    tabItem(tabName = "Infrastructure",
+            h2("Dashboard tab content"),
+    ),
+    
+    #Dashboard 2
+    
+    
+    tabItem(tabName = "Events",
+            h2("Events and Days of Interest")
+    )
+  )
+)
+
+ui <- dashboardPage(headerPanel,sidebar, body)
+
+# #map for the city of Calgary
+#  leaflet() %>% # this operator is called pipe, which means then
+#   addTiles() %>% #load background image
+#   addCircleMarkers(data = ? = ~LONGITUDE, lat = ~LATITUDE,
+#                    radius =0.5,
+#                    label = ~STATION_NUMBER)
+
+
+
+
+
+Server1 <- function(input, output){
+  #Load Local files and data
+  output$local_plot <- renderPlot({
+    hexagons <- st_read("C:/Users/wtang/Downloads/Data/Essential Data/150m Hexagon Shapes/Spatial Shape Data (3)/polygons.shp")
+    
+    
+    trips <- read.csv("C:/Users/wtang/Downloads/Data/Essential Data/Origin Av Distance by year/Trip counts for Hexagon Grid 150m from 1_1_2021 to 12_31_2021 - Av Origin Distance.csv")
+    trips <- trips %>% 
+      rename(name = total.count.6293.040000000014)
+    
+    
+    hexagoon <-full_join(hexagons, trips, by = "name")
+    
+    
+    
+    p_popup <- paste0("<strong> Trip Density: </strong>", hexagoon$operator.all)
+    
+    
+    
+    plot1 <- leaflet() %>%
+      addTiles() %>%
+      addPolygons(data = hexagoon,
+                  fillColor = "red", fillOpacity = 0.5, weight = 1,
+                  color = "white", opacity = 1,
+                  layerId = hexagoon$operator.all,
+                  popup = p_popup)
+  })
+}
+shinyApp(ui, Server1)
