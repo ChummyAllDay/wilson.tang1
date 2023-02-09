@@ -8,6 +8,9 @@ library(spdep)
 library(rgdal)
 library(rgeos)
 library(olsrr)
+library(dplyr)
+library(leaflet)
+
 
 headerPanel <- dashboardHeader( title = "PM1 - Calgary Micro-mobility",
                                 titleWidth = 450
@@ -63,12 +66,12 @@ ui <- dashboardPage(headerPanel,sidebar, body)
 Server1 <- function(input, output){
   #Load Local files and data
   output$local_plot <- renderPlot({
-    hexagons <- st_read("C:/Users/wtang/Downloads/Data/Essential Data/150m Hexagon Shapes/Spatial Shape Data (3)/polygons.shp")
+    hexagons <- st_read("/Users/wilsontang/Downloads/150m Hexagon Shapes/Spatial Shape Data (3)/polygons.shp")
     
     
-    trips <- read.csv("C:/Users/wtang/Downloads/Data/Essential Data/Origin Av Distance by year/Trip counts for Hexagon Grid 150m from 1_1_2021 to 12_31_2021 - Av Origin Distance.csv")
-    trips <- trips %>% 
-      rename(name = total.count.6293.040000000014)
+    trips <- read.csv("/Users/wilsontang/Downloads/Trip counts for Hexagon Grid 150m from 1_1_2020 to 12_31_2020 - Av Origin Distance.csv")
+  
+      colnames(trips)[2] <- "name"
     
     
     hexagoon <-full_join(hexagons, trips, by = "name")
